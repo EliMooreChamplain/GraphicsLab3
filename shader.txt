@@ -1,3 +1,5 @@
+vec4 ray_color(in vec3 rayOrig, in vec3 rayDir)
+
 float hit_sphere(in vec3 center, in float radius, in vec3 rayOrig, in vec3 rayDir)
 {
     vec3 oc = rayOrig - center;
@@ -8,22 +10,30 @@ float hit_sphere(in vec3 center, in float radius, in vec3 rayOrig, in vec3 rayDi
     return discriminant;
 }
 
+
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 uv = fragCoord / iResolution.xy;
     
+    float aspectRatio = iResolution.x / iResolution.y;
+    
     float focal_length = 1.0f;
     
+    float viewport_height = 2.0f;
+    float viewport_width = aspectRatio * viewport_height;
     
+    vec3 horizontal = vec3(viewport_width,0,0);
+    vec3 vertical = vec3(0,viewport_height,0);
     
     vec3 center = vec3(0,0,0);
-    float radius = 2.of;
+    float radius = 2.0f;
     vec3 origin = vec3(0,0,-5);
     
-    vec3 lower_left_corner = ;
+    vec3 lower_left_corner = origin - iResolution.x * 0.5f - iResolution.y * 0.5f - vec3(0, 0, focal_length);
     
     
-    float sphereHit = hit_sphere();
+    //float sphereHit = hit_sphere();
     fragColor = vec4(1,0,0,1);
 }
 
