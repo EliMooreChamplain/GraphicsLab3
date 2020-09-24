@@ -16,17 +16,23 @@ float hit_sphere(in vec3 center, in float radius, in ray inRay )
     float b = 2.0f * dot(oc, inRay.direction.xyz);
     float c = dot(oc,oc) - radius * radius;
     float discriminant = b*b - 4.0f*a*c;
-    return discriminant;
+    bool onSphere = discriminant < 0.0f;
+    return onSphere ? -1.0f : (-b - sqrt(discriminant) ) / (2.0*a);
 }
 
 vec4 ray_color(ray r)
 {
-    bool sphere_hit = hit_sphere(vec3(0,0,-1),(sin(iTime) * 0.1f) + 0.5,r) > 0.0f;
+    float t = hit_sphere(vec3(0,0,-1),(sin(iTime) * 0.1f) + 0.5,r);
+    bool tOver0 = t > 0.0f;
+    vec3 N = normalize(rayAt(r,t) - vec3(0,0,-1));
+    
     vec3 unit_direction = normalize(r.direction.xyz);
-    float t = 0.5f * (unit_direction.y + 1.0f);
+    t = 0.5f * (unit_direction.y + 1.0f);
     vec3 returnVec3 = (1.0f - t) * vec3(1,1,1) + t*vec3(0.5f, 0.7f, 1.0f);
-    return sphere_hit? vec4(1,0,0,1) : vec4(returnVec3, 1);
+    return tOver0 ? 0.5*vec4(N.x+1.0f, N.y+1.0f, N.z+1.0f, 2.0f) : vec4((1.0f-t) * vec3(1, 1, 1) + t*vec3(0.5f, 0.7f, 1.0f), 1.0f);
 }
+
+
 
 // calcColor: calculate the color of a pixel given a ray
 //    rayDirection: input ray direction
