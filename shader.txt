@@ -1,3 +1,11 @@
+/*
+   Eli Moore
+   Lab 3
+   GPR-200-01
+
+*/
+
+
 //Ray Struct
 struct ray
 {
