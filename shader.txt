@@ -1,14 +1,19 @@
+//Ray Struct
 struct ray
 {
     vec4 origin;
     vec4 direction;
 };
-    
+
+//The ray::at function
+//inRay is the ray
+//t is the position in the ray
 vec3 rayAt(ray inRay, float t)
 {
     return inRay.origin.xyz + (t * inRay.direction.xyz);
 }
 
+//Returns the normal on the sphere that the array collided with
 float hit_sphere(in vec3 center, in float radius, in ray inRay )
 {
     vec3 oc = inRay.origin.xyz - center;
@@ -20,6 +25,7 @@ float hit_sphere(in vec3 center, in float radius, in ray inRay )
     return onSphere ? -1.0f : (-b - sqrt(discriminant) ) / (2.0*a);
 }
 
+//Determines the color of the sphere and the background
 vec4 ray_color(ray r)
 {
     float t = hit_sphere(vec3(0,0,-1),(sin(iTime) * 0.1f) + 0.5,r);
@@ -50,6 +56,7 @@ vec4 calcColor(in vec4 rayDirection, in vec4 rayOrigin)
     
     return ray_color(r);
 }
+
 
 void calcViewport(out vec2 viewport, out vec2 ndc, out vec2 uv,
                   out float aspect, out vec2 resolutionInv,
