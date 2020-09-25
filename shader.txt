@@ -9,18 +9,67 @@ vec3 rayAt(ray inRay, float t)
     return inRay.origin.xyz + (t * inRay.direction.xyz);
 }
 
-float hit_sphere(in vec3 center, in float radius, in ray inRay )
+struct hit_record {
+    vec3 point;
+    vec3 normal;
+    float t;
+    bool front_face;
+};
+    
+void hit_record_set_face_normal(out hit_record rec, out ray r, out vec3 outward_normal)
 {
-    vec3 oc = inRay.origin.xyz - center;
-    float a = dot(inRay.direction, inRay.direction);
-    float b = 2.0f * dot(oc, inRay.direction.xyz);
-    float c = dot(oc,oc) - radius * radius;
-    float discriminant = b*b - 4.0f*a*c;
+    rec.front_face = dot(r.direction.xyz, outward_normal) < 0.0f;
+    rec.normal = rec.front_face ? outward_normal : -outward_normal;
+}
+    
+struct sphere
+{
+    vec3 center;
+    float radius;
+};
+
+bool hit_sphere(out sphere s, in ray r, float t_min, float t_max, out hit_record rec)
+{
+    vec3 oc = r.origin.xyz - s.center;
+    float a = length(r.direction) * length(r.direction);
+    float half_b = dot(oc, r.direction.xyz);
+    float c = dot(oc,oc) - (s.radius * s.radius);
+    float discriminant = half_b*half_b - a*c;
+    
     bool onSphere = discriminant < 0.0f;
-    return onSphere ? -1.0f : (-b - sqrt(discriminant) ) / (2.0*a);
+    if(onSphere)
+    {
+        float root = sqrt(discriminant);
+
+        float temp = (-half_b - root) / a;
+        if (temp < t_max && temp > t_min) {
+            rec.t = temp;
+            rec.point = rayAt(r,rec.t);
+            vec3 outward_normal = (rec.p - s.center) / s.radius;
+            hit_record_set_face_normal(rec, r, outward_normal);
+            return true;
+        }
+
+        temp = (-half_b + root) / a;
+        if (temp < t_max && temp > t_min) {
+            rec.t = temp;
+            rec.point = rayAt(r,rec.t);
+            vec3 outward_normal = (rec.p - center) / radius;
+            rec.set_face_normal(r, outward_normal);
+            return true;
+        }
+    }
+
+    return false;
+    
 }
 
-vec4 ray_color(ray r)
+
+
+
+
+
+vec4 ray_color(in ray r)
 {
     float t = hit_sphere(vec3(0,0,-1),(sin(iTime) * 0.1f) + 0.5,r);
     bool tOver0 = t > 0.0f;
@@ -29,9 +78,14 @@ vec4 ray_color(ray r)
     vec3 unit_direction = normalize(r.direction.xyz);
     t = 0.5f * (unit_direction.y + 1.0f);
     vec3 returnVec3 = (1.0f - t) * vec3(1,1,1) + t*vec3(0.5f, 0.7f, 1.0f);
-    return tOver0 ? 0.5*vec4(N.x+1.0f, N.y+1.0f, N.z+1.0f, 2.0f) : vec4((1.0f-t) * vec3(1, 1, 1) + t*vec3(0.5f, 0.7f, 1.0f), 1.0f);
+    vec3 colorToReturn = tOver0 ? 0.5*vec3(N.x+1.0f, N.y+1.0f, N.z+1.0f) : (1.0f-t) * vec3(1, 1, 1) + t*vec3(0.5f, 0.7f, 1.0f);
+    return vec4(colorToReturn,1.0f);
 }
 
+struct hittable_list
+{
+    
+}
 
 
 // calcColor: calculate the color of a pixel given a ray
@@ -100,12 +154,14 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
     // ray
     vec4 rayDirection, rayOrigin;
-
+    
     // setup
     calcViewport(viewport, ndc, uv, aspect, resolutionInv,
                  viewportHeight, fragCoord, iResolution.xy);
     calcRay(rayDirection, rayOrigin,
             viewport, focalLength);
+    
+    
 
     // color
     fragColor = calcColor(rayDirection, rayOrigin);
